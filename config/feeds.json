@@ -1,0 +1,12 @@
+{
+  "feeds": [
+    {
+      "name": "JoyNews",
+      "url": "https://www.myjoyonline.com/feed/"
+    },
+    {
+      "name": "GhanaWeb",
+      "url": "https://www.ghanaweb.com/GhanaHomePage/rss/news.xml"
+    }
+  ]
+}

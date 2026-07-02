@@ -1,33 +1,56 @@
 import feedparser
 
-# Trusted RSS feeds
-RSS_FEEDS = {
-    "JoyNews": "https://www.myjoyonline.com/feed/",
-    "GhanaWeb": "https://www.ghanaweb.com/GhanaHomePage/rss/news.xml",
-}
+from src.config_loader import load_feeds
+from src.database import save_incident
+from src.incident_filter import is_security_incident
+
 
 def fetch_news():
+
     print("=" * 60)
     print("Sentinel AI - RSS Incident Monitor")
     print("=" * 60)
 
-    for source, url in RSS_FEEDS.items():
+    feeds = load_feeds()
+
+    for feed in feeds:
+
+        source = feed["name"]
+        url = feed["url"]
+
         print(f"\nChecking: {source}")
 
-        feed = feedparser.parse(url)
+        rss = feedparser.parse(url)
 
-        if not feed.entries:
+        if not rss.entries:
             print("No articles found.")
             continue
 
-        for article in feed.entries[:5]:
-            print(f"\nTitle : {article.title}")
-            print(f"Link  : {article.link}")
+        for article in rss.entries[:5]:
 
-            if hasattr(article, "published"):
-                print(f"Date  : {article.published}")
+            if is_security_incident(article.title):
 
-            print("-" * 60)
+                published = ""
+
+                if hasattr(article, "published"):
+                    published = article.published
+
+                print("\n🚨 SECURITY INCIDENT DETECTED")
+                print(f"Source : {source}")
+                print(f"Title  : {article.title}")
+                print(f"Link   : {article.link}")
+
+                if published:
+                    print(f"Date   : {published}")
+
+                save_incident(
+                    source,
+                    article.title,
+                    article.link,
+                    published
+                )
+
+                print("-" * 60)
 
 
 if __name__ == "__main__":
