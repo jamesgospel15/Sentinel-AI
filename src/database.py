@@ -1,14 +1,18 @@
 import sqlite3
+import os
 
-DATABASE_NAME = "database/sentinel_ai.db"
+
+DB_PATH = "database/sentinel_ai.db"
 
 
 def create_database():
-    """
-    Creates the incidents table if it doesn't already exist.
-    """
+    """Create the database and incidents table if they do not exist."""
 
-    connection = sqlite3.connect(DATABASE_NAME)
+    # Create database folder if it doesn't exist
+    os.makedirs("database", exist_ok=True)
+
+    connection = sqlite3.connect(DB_PATH)
+
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -17,8 +21,7 @@ def create_database():
             source TEXT,
             title TEXT,
             link TEXT UNIQUE,
-            published TEXT,
-            collected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            published TEXT
         )
     """)
 
@@ -27,23 +30,43 @@ def create_database():
 
 
 def save_incident(source, title, link, published):
-    """
-    Saves a security incident into the database.
-    """
+    """Save a new incident to the database."""
 
-    connection = sqlite3.connect(DATABASE_NAME)
+    connection = sqlite3.connect(DB_PATH)
+
     cursor = connection.cursor()
 
     try:
         cursor.execute("""
-            INSERT INTO incidents(source, title, link, published)
+            INSERT INTO incidents (source, title, link, published)
             VALUES (?, ?, ?, ?)
         """, (source, title, link, published))
 
         connection.commit()
 
+        print("💾 Incident saved to database.")
+
     except sqlite3.IntegrityError:
-        # Duplicate article
-        pass
+        print("⚠️ Incident already exists in database.")
+
+    finally:
+        connection.close()
+
+
+def incident_exists(link):
+    """Check if an incident already exists in the database."""
+
+    connection = sqlite3.connect(DB_PATH)
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT id FROM incidents WHERE link = ?",
+        (link,)
+    )
+
+    result = cursor.fetchone()
 
     connection.close()
+
+    return result is not None

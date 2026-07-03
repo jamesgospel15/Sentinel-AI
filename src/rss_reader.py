@@ -1,7 +1,7 @@
 import feedparser
 
 from src.config_loader import load_feeds
-from src.database import save_incident
+from src.database import save_incident, incident_exists
 from src.incident_filter import is_security_incident
 
 
@@ -28,6 +28,12 @@ def fetch_news():
 
         for article in rss.entries[:5]:
 
+            # Skip duplicates already stored
+            if incident_exists(article.link):
+                print(f"⏭️ Skipping duplicate: {article.title}")
+                continue
+
+            # Check whether this is a security-related incident
             if is_security_incident(article.title):
 
                 published = ""

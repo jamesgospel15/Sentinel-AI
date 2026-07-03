@@ -27,11 +27,11 @@ def job():
         print(e)
 
 
-schedule.every(5).minutes.do(job)
+schedule.every(3).minutes.do(job)
 
 print("=" * 60)
 print("Sentinel AI Scheduler Started")
-print("Monitoring every 5 minutes...")
+print("Monitoring every 3 minutes...")
 print("Press CTRL + C to stop.")
 print("=" * 60)
 
